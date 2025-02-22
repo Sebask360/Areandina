@@ -125,5 +125,3 @@ class Banco:
             cuenta.depositar(monto)
         else:
             print("Cuenta no encontrada.")
-
-

@@ -1,187 +1,141 @@
-class Usuario:
-    def __init__(self, identificacion, nombre):
-        self.identificacion = identificacion
+class Persona:
+    def __init__(self, nombre, identificacion):
         self.nombre = nombre
+        self.identificacion = identificacion
+
+class PersonaNatural(Persona):
+    def __init__(self, nombre, identificacion, edad):
+        super().__init__(nombre, identificacion)
+        self.edad = edad
+
+class PersonaJuridica(Persona):
+    def __init__(self, nombre, identificacion, razon_social):
+        super().__init__(nombre, identificacion)
+        self.razon_social = razon_social
+
+class Usuario(Persona):
+    def __init__(self, nombre, identificacion):
+        super().__init__(nombre, identificacion)
         self.cuentas = []
 
     def agregar_cuenta(self, cuenta):
         self.cuentas.append(cuenta)
 
-    def mostrar_info(self):
-        print(f"Usuario: {self.nombre} (ID: {self.identificacion})")
+    def obtener_cuenta(self, numero_cuenta):
         for cuenta in self.cuentas:
-            print(f"  - Cuenta {type(cuenta).__name__}: Saldo {cuenta.saldo}")
-
-class Banco:
-    def __init__(self, nombre):
-        self.nombre = nombre
-        self.usuarios = {}
-
-    def agregar_usuario(self, usuario):
-        self.usuarios[usuario.identificacion] = usuario
-
-    def agregar_cuenta_a_usuario(self, id_usuario, cuenta):
-        if id_usuario in self.usuarios:
-            self.usuarios[id_usuario].agregar_cuenta(cuenta)
-            print("Cuenta agregada con éxito.")
-        else:
-            print("Usuario no encontrado.")
-
-    def mostrar_usuarios(self):
-        for usuario in self.usuarios.values():
-            usuario.mostrar_info()
-
-    def realizar_transferencia(self, id_origen, id_destino, monto):
-        cuenta_origen = None
-        cuenta_destino = None
-        
-        for usuario in self.usuarios.values():
-            for cuenta in usuario.cuentas:
-                if cuenta.id_cuenta == id_origen:
-                    cuenta_origen = cuenta
-                if cuenta.id_cuenta == id_destino:
-                    cuenta_destino = cuenta
-        
-        if cuenta_origen and cuenta_destino:
-            if cuenta_origen.saldo >= monto:
-                cuenta_origen.retirar(monto)
-                cuenta_destino.depositar(monto)
-                print("Transferencia realizada con éxito.")
-            else:
-                print("Fondos insuficientes para la transferencia.")
-        else:
-            print("Una o ambas cuentas no fueron encontradas.")
-
-    def realizar_deposito(self, id_cuenta, monto):
-        for usuario in self.usuarios.values():
-            for cuenta in usuario.cuentas:
-                if cuenta.id_cuenta == id_cuenta:
-                    cuenta.depositar(monto)
-                    return
-        print("Cuenta no encontrada.")
-
-    def realizar_retiro(self, id_cuenta, monto):
-        for usuario in self.usuarios.values():
-            for cuenta in usuario.cuentas:
-                if cuenta.id_cuenta == id_cuenta:
-                    cuenta.retirar(monto)
-                    return
-        print("Cuenta no encontrada.")
+            if cuenta.numero_cuenta == numero_cuenta:
+                return cuenta
+        return None
 
 class Cuenta:
-    def __init__(self, id_cuenta, titular, saldo=0.0):
-        self.id_cuenta = id_cuenta
-        self.titular = titular  # Puede ser PersonaNatural o PersonaJuridica
+    def __init__(self, numero_cuenta, titular, saldo=0):
+        self.numero_cuenta = numero_cuenta
+        self.titular = titular
         self.saldo = saldo
 
-    def depositar(self, monto):
-        self.saldo += monto
-        print(f"Depósito de {monto} realizado. Nuevo saldo: {self.saldo}")
-
-    def retirar(self, monto):
-        if monto <= self.saldo:
-            self.saldo -= monto
-            print(f"Retiro de {monto} realizado. Nuevo saldo: {self.saldo}")
+    def depositar(self, cantidad):
+        if cantidad > 0:
+            self.saldo += cantidad
+            print(f"Depósito exitoso. Nuevo saldo: {self.saldo}")
         else:
-            print("Saldo insuficiente")
+            print("Cantidad inválida para depósito.")
 
-class CuentaAhorro(Cuenta):
-    def __init__(self, id_cuenta, titular, saldo=0.0, tasa_interes=0.02):
-        super().__init__(id_cuenta, titular, saldo)
-        self.tasa_interes = tasa_interes
-        self.retiros_permitidos = 3
-
-    def aplicar_interes(self):
-        self.saldo += self.saldo * self.tasa_interes
-        print(f"Interés aplicado. Nuevo saldo: {self.saldo}")
-
-    def retirar(self, monto):
-        if self.retiros_permitidos > 0:
-            super().retirar(monto)
-            self.retiros_permitidos -= 1
+    def retirar(self, cantidad):
+        if 0 < cantidad <= self.saldo:
+            self.saldo -= cantidad
+            print(f"Retiro exitoso. Nuevo saldo: {self.saldo}")
         else:
-            print("Has alcanzado el límite de retiros mensuales")
+            print("Fondos insuficientes o cantidad inválida.")
 
-class CuentaCorriente(Cuenta):
-    def __init__(self, id_cuenta, titular, saldo=0.0, limite_sobregiro=500):
-        super().__init__(id_cuenta, titular, saldo)
-        self.limite_sobregiro = limite_sobregiro
+class Banco:
+    def __init__(self):
+        self.usuarios = {}
+        self.contador_cuentas = 1000  # Número de cuenta inicial
 
-    def retirar(self, monto):
-        if monto <= self.saldo + self.limite_sobregiro:
-            self.saldo -= monto
-            print(f"Retiro de {monto} realizado. Nuevo saldo: {self.saldo}")
+    def registrar_usuario(self, nombre, identificacion):
+        if identificacion not in self.usuarios:
+            self.usuarios[identificacion] = Usuario(nombre, identificacion)
+            print(f"Usuario {nombre} registrado correctamente.")
         else:
-            print("Fondos insuficientes, incluso con sobregiro")
+            print("El usuario ya existe.")
 
-class CuentaEmpresa(Cuenta):
-    def __init__(self, id_cuenta, titular, saldo=0.0, credito_disponible=10000):
-        super().__init__(id_cuenta, titular, saldo)
-        self.credito_disponible = credito_disponible
-
-    def solicitar_credito(self, monto):
-        if monto <= self.credito_disponible:
-            self.saldo += monto
-            self.credito_disponible -= monto
-            print(f"Crédito de {monto} aprobado. Nuevo saldo: {self.saldo}")
+    def crear_cuenta(self, identificacion):
+        if identificacion in self.usuarios:
+            usuario = self.usuarios[identificacion]
+            cuenta = Cuenta(self.contador_cuentas, usuario.nombre)
+            usuario.agregar_cuenta(cuenta)
+            self.contador_cuentas += 1
+            print(f"Cuenta creada con éxito. Número de cuenta: {cuenta.numero_cuenta}")
         else:
-            print("Monto del crédito excede el límite disponible")
+            print("Usuario no registrado.")
 
-# Menú principal de gestión bancaria
-banco = Banco("Banco Central")
+    def mostrar_usuarios(self):
+        if self.usuarios:
+            print("Usuarios registrados:")
+            
+            for usuario in self.usuarios.values():
+                print(f"Nombre: {usuario.nombre}, ID: {usuario.identificacion}")
+                for cuenta in usuario.cuentas:
+                    print(f"  - Cuenta N° {cuenta.numero_cuenta}, Saldo: {cuenta.saldo}")
+        else:
+            print("No hay usuarios registrados.")
 
+    def realizar_transferencia(self, id_origen, num_cuenta_origen, id_destino, num_cuenta_destino, cantidad):
+        if id_origen in self.usuarios and id_destino in self.usuarios:
+            usuario_origen = self.usuarios[id_origen]
+            usuario_destino = self.usuarios[id_destino]
+            cuenta_origen = usuario_origen.obtener_cuenta(num_cuenta_origen)
+            cuenta_destino = usuario_destino.obtener_cuenta(num_cuenta_destino)
+
+            if cuenta_origen and cuenta_destino:
+                if cuenta_origen.saldo >= cantidad:
+                    cuenta_origen.retirar(cantidad)
+                    cuenta_destino.depositar(cantidad)
+                    print(f"Transferencia exitosa de {usuario_origen.nombre} a {usuario_destino.nombre} por {cantidad}.")
+                else:
+                    print("Fondos insuficientes para la transferencia.")
+            else:
+                print("Una de las cuentas no fue encontrada.")
+        else:
+            print("Uno o ambos usuarios no están registrados.")
+
+# Menú de opciones
+banco = Banco()
 while True:
-    print("\n--- Menú de Gestión Bancaria ---")
-    print("1. Agregar usuario")
-    print("2. Agregar cuenta a un usuario")
-    print("3. Mostrar información de usuarios")
-    print("4. Realizar transferencia")
-    print("5. Realizar depósito")
-    print("6. Realizar retiro")
-    print("7. Salir")
-    
+    print("\n1. Registrar usuario")
+    print("2. Crear cuenta bancaria")
+    print("3. Mostrar usuarios y cuentas")
+    print("4. Transferencia entre cuentas")
+    print("5. Salir")
     opcion = input("Seleccione una opción: ")
-    
+
     if opcion == "1":
-        identificacion = input("Ingrese la identificación del usuario: ")
         nombre = input("Ingrese el nombre del usuario: ")
-        usuario = Usuario(identificacion, nombre)
-        banco.agregar_usuario(usuario)
-        print("Usuario agregado con éxito.")
-    
+        identificacion = input("Ingrese la identificación del usuario: ")
+        banco.registrar_usuario(nombre, identificacion)
     elif opcion == "2":
-        id_usuario = input("Ingrese la identificación del usuario: ")
-        tipo_cuenta = input("Ingrese el tipo de cuenta (Ahorro/Corriente/Empresa): ")
-        saldo_inicial = float(input("Ingrese el saldo inicial: "))
-        if tipo_cuenta.lower() == "ahorro":
-            cuenta = CuentaAhorro(id_usuario, id_usuario, saldo_inicial)
-        elif tipo_cuenta.lower() == "corriente":
-            cuenta = CuentaCorriente(id_usuario, id_usuario, saldo_inicial)
-        elif tipo_cuenta.lower() == "empresa":
-            cuenta = CuentaEmpresa(id_usuario, id_usuario, saldo_inicial)
-        else:
-            print("Tipo de cuenta no válido")
-            continue
-        banco.agregar_cuenta_a_usuario(id_usuario, cuenta)
-    
+        identificacion = input("Ingrese la identificación del usuario: ")
+        banco.crear_cuenta(identificacion)
     elif opcion == "3":
         banco.mostrar_usuarios()
-    
     elif opcion == "4":
-        id_origen = input("Ingrese el ID de la cuenta origen: ")
-        id_destino = input("Ingrese el ID de la cuenta destino: ")
-        monto = float(input("Ingrese el monto a transferir: "))
-        banco.realizar_transferencia(id_origen, id_destino, monto)
-    
+        id_origen = input("Ingrese la identificación del remitente: ")
+        num_cuenta_origen = int(input("Ingrese el número de cuenta del remitente: "))
+        id_destino = input("Ingrese la identificación del destinatario: ")
+        num_cuenta_destino = int(input("Ingrese el número de cuenta del destinatario: "))
+        cantidad = float(input("Ingrese la cantidad a transferir: "))
+        banco.realizar_transferencia(id_origen, num_cuenta_origen, id_destino, num_cuenta_destino, cantidad)
     elif opcion == "5":
-        banco.realizar_deposito(input("Ingrese el ID de la cuenta: "), float(input("Ingrese el monto a depositar: ")))
-    
-    elif opcion == "6":
-        banco.realizar_retiro(input("Ingrese el ID de la cuenta: "), float(input("Ingrese el monto a retirar: ")))
-    
-    elif opcion == "7":
         print("Saliendo del sistema...")
         break
-    
     else:
         print("Opción inválida, intente de nuevo.")
+
+
+
+
+#######################################
+    def mostrar_info(self):
+        print(f"\n------------------------\nUsuario: \n - Nombre: {self.nombre}\n - ID: {self.identificacion}\n - Tipo: {self.tipo_persona.__class__.__name__}\n----------------------")
+        for cuenta in self.cuentas:
+            print(f"{type(cuenta).__name__}: \n - ID {cuenta.id_cuenta} \n - Saldo {cuenta.saldo}\n------------------------")

@@ -26,14 +26,12 @@ class ArbolBinario:
             else:
                 self._insertar(nodo.der, dato)
 
-    # Recorrido en orden
     def en_orden(self, nodo):
         if nodo is not None:
             yield from self.en_orden(nodo.izq)
             yield nodo.dato
             yield from self.en_orden(nodo.der)
 
-    # Nodos con dos hijos
     def nodos_dos_hijos(self, nodo):
         if nodo is not None:
             yield from self.nodos_dos_hijos(nodo.izq)
@@ -41,7 +39,6 @@ class ArbolBinario:
                 yield nodo.dato
             yield from self.nodos_dos_hijos(nodo.der)
 
-    # Nodos con al menos un hijo par (en preorden)
     def nodos_hijo_par(self, nodo):
         if nodo is not None:
             if (nodo.izq and nodo.izq.dato % 2 == 0) or (nodo.der and nodo.der.dato % 2 == 0):
@@ -49,7 +46,6 @@ class ArbolBinario:
             yield from self.nodos_hijo_par(nodo.izq)
             yield from self.nodos_hijo_par(nodo.der)
 
-    # Suma de hijos (en preorden)
     def suma_hijos(self, nodo):
         if nodo is not None:
             suma = 0
@@ -61,7 +57,6 @@ class ArbolBinario:
             yield from self.suma_hijos(nodo.izq)
             yield from self.suma_hijos(nodo.der)
 
-    # Camino hacia un nodo X
     def camino(self, dato):
         camino = []
         actual = self.raiz
@@ -76,7 +71,6 @@ class ArbolBinario:
         return None
 
 
-# ---------- Programa principal ----------
 if __name__ == "__main__":
     arbol = ArbolBinario()
     n = int(input("Ingrese la cantidad de nodos: "))
